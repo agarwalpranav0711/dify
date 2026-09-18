@@ -2475,12 +2475,22 @@ class TestModelValidateDecorator(SQLiteEndpointTest):
         ):
             session = Mock()
             session.scalar.return_value = dataset
-            resp, status = SegmentApi().get(
-                session=session,
-                tenant_id=mock_tenant.id,
-                dataset_id=uuid.UUID(dataset.id),
-                document_id=uuid.UUID(doc.id),
-            )
+            with (
+                patch(
+                    "controllers.service_api.dataset.segment.SummaryIndexService.get_segments_summaries",
+                    return_value={},
+                ),
+                patch(
+                    "controllers.service_api.dataset.segment.segment_responses_with_summaries",
+                    return_value=[],
+                ),
+            ):
+                resp, status = SegmentApi().get(
+                    session=session,
+                    tenant_id=mock_tenant.id,
+                    dataset_id=uuid.UUID(dataset.id),
+                    document_id=uuid.UUID(doc.id),
+                )
 
         assert status == 200
         data = resp.json if hasattr(resp, "json") else resp
